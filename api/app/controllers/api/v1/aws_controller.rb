@@ -44,6 +44,7 @@ module Api
           end
         end
 
+        bucket.objects.batch_delete!
 
         render json: { error: nil, data: nil }
       end
