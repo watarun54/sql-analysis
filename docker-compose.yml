@@ -1,0 +1,40 @@
+version: '3'
+services:
+
+  mysql:
+    build: ./mysql
+    container_name: sql_analysis_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: sql_analysis_api_development
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./mysql/data:/var/lib/mysql # データの永続化
+      # - ./mysql/sqls:/docker-entrypoint-initdb.d # 初期データ投入
+#    restart: always
+
+  api:
+    # tty: true
+    # stdin_open: true
+    build: ./api
+    container_name: sql_analysis_api
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - ./api:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+  nginx:
+    build: ./nginx
+    container_name: sql_analysis_nginx
+    ports:
+      - "8080:80"
+    links:
+      - api
+    volumes:
+      - ./front/build:/app:ro
